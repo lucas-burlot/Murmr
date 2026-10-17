@@ -1,18 +1,32 @@
 # Builds the installers on each OS and attaches them to a draft GitHub Release.
-# Triggered by pushing a version tag:  git tag v1.0.0 && git push origin v1.0.0
+# Triggered by pushing a version tag:  git tag v1.1.0 && git push origin v1.1.0
+# Then write the release notes and publish the draft on GitHub.
 name: Release
 
 on:
   push:
     tags: ['v*']
-  workflow_dispatch:
 
 permissions:
   contents: write
 
+env:
+  GH_TOKEN: ${{ github.token }}
+  GH_REPO: ${{ github.repository }}
+
 jobs:
-  release:
+  draft:
+    name: Create draft release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create the draft release if it doesn't exist yet
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 ||
+            gh release create "$GITHUB_REF_NAME" --draft --title "Murmr ${GITHUB_REF_NAME#v}" --notes "Release notes coming soon."
+
+  build:
     name: ${{ matrix.name }}
+    needs: draft
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -48,7 +62,13 @@ jobs:
       - run: npm test
       - run: npm run build
 
-      - name: Build and upload installers
-        run: npx electron-builder ${{ matrix.args }} --publish always
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build installers
+        run: npx electron-builder ${{ matrix.args }} --publish never
+
+      # Only the installers: no auto-update metadata (.yml, .blockmap) in the release.
+      - name: Upload installers to the release
+        shell: bash
+        run: |
+          shopt -s nullglob
+          files=(dist/Murmr-*.{dmg,exe,AppImage,deb})
+          gh release upload "$GITHUB_REF_NAME" "${files[@]}" --clobber

@@ -41,6 +41,7 @@ const PRELOAD = path.join(__dirname, '../preload/preload.js');
 const RESOURCES = app.isPackaged ? process.resourcesPath : path.join(__dirname, '../../resources');
 
 const OVERLAY_SIZE = { width: 360, height: 72 };
+const HIDDEN_ARG = '--hidden';
 const HIDE_DELAY_MS: Partial<Record<DictationState, number>> = {
   done: 700,
   empty: 1200,
@@ -113,7 +114,14 @@ function init(): void {
     void systemPreferences.askForMediaAccess('microphone');
   }
   prepareLocalEngine();
-  if (!engineReady() || !keyboardHookRunning) showMainWindow();
+  // Open the window whenever the user launches Murmr; stay in the tray only
+  // when the system started it at login (unless something still needs setup).
+  if (!launchedAtLogin() || !engineReady() || !keyboardHookRunning) showMainWindow();
+}
+
+function launchedAtLogin(): boolean {
+  if (process.argv.includes(HIDDEN_ARG)) return true; // Windows login item
+  return isMac && app.getLoginItemSettings().wasOpenedAtLogin;
 }
 
 // --- transcription engine ------------------------------------------------------
@@ -357,6 +365,20 @@ function updateTray(): void {
       },
       { type: 'separator' },
       { label: t('tray.open'), click: () => showMainWindow() },
+      { type: 'separator' },
+      {
+        label: t('tray.engine.cloud'),
+        type: 'radio',
+        checked: settings.engine === 'cloud',
+        click: () => updateSettings({ engine: 'cloud' }),
+      },
+      {
+        label: t('tray.engine.local'),
+        type: 'radio',
+        checked: settings.engine === 'local',
+        click: () => updateSettings({ engine: 'local' }),
+      },
+      { type: 'separator' },
       {
         label: t('tray.cleanup'),
         type: 'checkbox',
@@ -381,7 +403,7 @@ function updateSettings(patch: Partial<Settings>): Settings {
   if (patch.hotkey || patch.mode) hotkeys.configure(settings.hotkey.keycode, settings.mode);
   if (patch.engine || patch.localModel) prepareLocalEngine();
   if (patch.openAtLogin !== undefined && process.platform !== 'linux') {
-    app.setLoginItemSettings({ openAtLogin: settings.openAtLogin });
+    app.setLoginItemSettings({ openAtLogin: settings.openAtLogin, args: [HIDDEN_ARG] });
   }
   broadcast(IPC.settingsChanged, settings);
   updateTray();

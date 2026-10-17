@@ -84,6 +84,13 @@ const PATHS: Record<string, ReactNode> = {
     </>
   ),
   wave: <path d="M3 12h2M7 8v8M11 5v14M15 8v8M19 10v4M21 12h0" />,
+  cloud: <path d="M7 18a4.5 4.5 0 0 1-.5-8.97A6 6 0 0 1 18 8.5a4.5 4.5 0 0 1-.5 9.5z" />,
+  laptop: (
+    <>
+      <rect x="4" y="5" width="16" height="11" rx="1.5" />
+      <path d="M2 19h20" />
+    </>
+  ),
 };
 
 export function Icon({ name, size = 18 }: { name: keyof typeof PATHS; size?: number }) {

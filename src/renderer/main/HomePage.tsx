@@ -1,5 +1,6 @@
 import type { Settings } from '../../shared/types';
 import type { Page } from './App';
+import { EngineCard } from './EngineCard';
 import { HistoryItem } from './HistoryPage';
 import { useHistory, useModels, usePermissions } from './hooks';
 import { useI18n } from './i18n';
@@ -112,6 +113,8 @@ export function HomePage({ settings, update, navigate }: Props) {
           </ol>
         </Card>
       )}
+
+      <EngineCard settings={settings} update={update} navigate={navigate} />
 
       <Card title={t('home.mode.title')} description={t('home.mode.desc')}>
         <div className="mode-choice">

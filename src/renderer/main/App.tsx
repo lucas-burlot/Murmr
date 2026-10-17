@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { MessageKey } from '../../shared/i18n';
+import { localModel } from '../../shared/models';
 import logoMark from './assets/logo-mark.png';
 import { DictionaryPage } from './DictionaryPage';
 import { HistoryPage } from './HistoryPage';
@@ -61,6 +62,12 @@ function Shell({ settings, update }: Props) {
             <span className="status-dot" />
             {hookInactive ? t('state.hookInactive') : t(`state.${state}`)}
           </div>
+          <button className="engine-chip" onClick={() => setPage('settings')}>
+            <Icon name={settings.engine === 'local' ? 'laptop' : 'cloud'} size={14} />
+            {settings.engine === 'local'
+              ? t('engine.local.short', { model: t(`model.name.${localModel(settings.localModel).id}`) })
+              : t('engine.cloud.short')}
+          </button>
           <div className="muted small">
             {tn(settings.mode === 'hold' ? 'sidebar.hold' : 'sidebar.press', {
               key: <Keycap>{keyName(settings.hotkey.name)}</Keycap>,

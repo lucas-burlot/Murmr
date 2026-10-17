@@ -176,7 +176,8 @@ Build each installer on its own OS (or in CI). Builds are currently unsigned: on
 | **Release** | Your words are transcribed, cleaned and pasted at the cursor |
 | **Esc** while recording | Cancels: nothing is sent, nothing is pasted |
 | Another key while holding | Cancels too, so shortcuts like <kbd>Option</kbd>+<kbd>E</kbd> keep working |
-| Tray icon → **AI cleanup** | Toggle between raw Whisper and cleaned-up text |
+| Tray icon → **Cloud / Local** | Switch the transcription engine |
+| Tray icon → **AI cleanup** | Toggle between the raw transcript and AI-cleaned text |
 
 Change the hotkey in *Settings → Shortcut*: click **Change** and press any modifier or F-key.
 

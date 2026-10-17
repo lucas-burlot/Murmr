@@ -1,6 +1,7 @@
 // Types and IPC channel names shared by the main process, preload and renderers.
 
 import type { Lang, MessageKey } from './i18n';
+import type { LocalModelId } from './models';
 
 export interface Hotkey {
   keycode: number; // uiohook-napi keycode
@@ -9,7 +10,12 @@ export interface Hotkey {
 
 export type DictationMode = 'hold' | 'toggle';
 
+/** Where Whisper runs: Groq's servers, or this computer (whisper.cpp). */
+export type Engine = 'cloud' | 'local';
+
 export interface Settings {
+  engine: Engine;
+  localModel: LocalModelId;
   apiKey: string;
   baseUrl: string;
   transcriptionModel: string;
@@ -58,10 +64,12 @@ export interface RecordingPayload {
   mimeType: string;
   durationMs: number;
   peakRms: number; // 0..1, loudest analysis frame
+  /** 16 kHz mono signed 16-bit PCM, only produced for the local engine. */
+  pcm16?: ArrayBuffer;
 }
 
 export type OverlayCommand =
-  | { type: 'start'; deviceId: string; sounds: boolean }
+  | { type: 'start'; deviceId: string; sounds: boolean; pcm: boolean }
   | { type: 'stop' }
   | { type: 'cancel' };
 
@@ -72,6 +80,8 @@ export interface Permissions {
   microphone: PermissionStatus;
   accessibility: boolean;
   keyboardHookRunning: boolean;
+  /** Started with `npm start`: macOS grants Accessibility to the terminal that launched it. */
+  devMode: boolean;
 }
 
 export type CaptureResult =
@@ -82,6 +92,20 @@ export interface TestResult {
   ok: boolean;
   messageKey: MessageKey;
   detail?: string;
+}
+
+export interface LocalModelStatus {
+  id: LocalModelId;
+  sizeMb: number;
+  downloaded: boolean;
+}
+
+export interface ModelProgress {
+  id: LocalModelId;
+  received: number;
+  total: number;
+  state: 'downloading' | 'done' | 'cancelled' | 'error';
+  error?: string;
 }
 
 type Unsubscribe = () => void;
@@ -110,6 +134,13 @@ export interface MurmrAPI {
     request(kind: 'microphone' | 'accessibility'): Promise<Permissions>;
     onChange(cb: (p: Permissions) => void): Unsubscribe;
   };
+  models: {
+    list(): Promise<LocalModelStatus[]>;
+    download(id: LocalModelId): Promise<void>;
+    cancel(id: LocalModelId): Promise<void>;
+    remove(id: LocalModelId): Promise<void>;
+    onProgress(cb: (p: ModelProgress) => void): Unsubscribe;
+  };
   openExternal(url: string): Promise<void>;
   copy(text: string): Promise<void>;
   overlay: {
@@ -133,6 +164,11 @@ export const IPC = {
   permissionsGet: 'permissions:get',
   permissionsRequest: 'permissions:request',
   permissionsChanged: 'permissions:changed',
+  modelsList: 'models:list',
+  modelsDownload: 'models:download',
+  modelsCancel: 'models:cancel',
+  modelsRemove: 'models:remove',
+  modelsProgress: 'models:progress',
   openExternal: 'app:open-external',
   copy: 'app:copy',
   overlayCommand: 'overlay:command',

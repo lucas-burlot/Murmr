@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { HistoryEntry, Permissions, Settings, StateEvent } from '../../shared/types';
+import type { LocalModelId } from '../../shared/models';
+import type { HistoryEntry, LocalModelStatus, ModelProgress, Permissions, Settings, StateEvent } from '../../shared/types';
 
 const murmr = window.murmr;
 
@@ -47,4 +48,23 @@ export function usePermissions(): [Permissions | null, (kind: 'microphone' | 'ac
     setPerms(await murmr.permissions.request(kind));
   }, []);
   return [perms, request];
+}
+
+export interface ModelsState {
+  models: LocalModelStatus[];
+  progress: Partial<Record<LocalModelId, ModelProgress>>;
+}
+
+export function useModels(): ModelsState {
+  const [models, setModels] = useState<LocalModelStatus[]>([]);
+  const [progress, setProgress] = useState<ModelsState['progress']>({});
+  useEffect(() => {
+    const refresh = () => void murmr.models.list().then(setModels);
+    refresh();
+    return murmr.models.onProgress((p) => {
+      setProgress((prev) => ({ ...prev, [p.id]: p }));
+      if (p.state !== 'downloading') refresh();
+    });
+  }, []);
+  return { models, progress };
 }

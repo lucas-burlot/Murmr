@@ -4,7 +4,7 @@ import logoMark from './assets/logo-mark.png';
 import { DictionaryPage } from './DictionaryPage';
 import { HistoryPage } from './HistoryPage';
 import { HomePage } from './HomePage';
-import { useDictationState, useSettings } from './hooks';
+import { useDictationState, usePermissions, useSettings } from './hooks';
 import { I18nProvider, useI18n } from './i18n';
 import { SettingsPage } from './SettingsPage';
 import { Icon, Keycap } from './ui';
@@ -33,7 +33,9 @@ type Props = { settings: NonNullable<ReturnType<typeof useSettings>[0]>; update:
 function Shell({ settings, update }: Props) {
   const [page, setPage] = useState<Page>('home');
   const { state } = useDictationState();
+  const [perms] = usePermissions();
   const { t, tn, keyName } = useI18n();
+  const hookInactive = perms !== null && !perms.keyboardHookRunning;
 
   return (
     <div className={`app platform-${window.murmr.platform}`}>
@@ -55,9 +57,9 @@ function Shell({ settings, update }: Props) {
           ))}
         </nav>
         <div className="sidebar-footer">
-          <div className={`status status-${state}`}>
+          <div className={`status status-${hookInactive ? 'error' : state}`}>
             <span className="status-dot" />
-            {t(`state.${state}`)}
+            {hookInactive ? t('state.hookInactive') : t(`state.${state}`)}
           </div>
           <div className="muted small">
             {tn(settings.mode === 'hold' ? 'sidebar.hold' : 'sidebar.press', {

@@ -4,6 +4,8 @@ import { ApiError } from '../src/main/groq';
 import type { RecordingPayload, Settings } from '../src/shared/types';
 
 const settings = (overrides: Partial<Settings> = {}): Settings => ({
+  engine: 'cloud',
+  localModel: 'small',
   apiKey: 'k',
   baseUrl: 'http://x',
   transcriptionModel: 'whisper-large-v3',
@@ -44,6 +46,19 @@ describe('processRecording', () => {
     expect(d.paste).toHaveBeenCalledWith('Bonjour.', true);
     expect(d.addHistory).toHaveBeenCalledWith({ raw: 'euh bonjour', text: 'Bonjour.', cleaned: true, durationMs: 2000 });
     expect(states).toEqual(['transcribing', 'cleaning', 'done:msg.pasted']);
+  });
+
+  it('passes the whole recording to the engine', async () => {
+    const { d } = deps(settings({ engine: 'local', cleanupEnabled: false }));
+    await processRecording(speech, d);
+    expect(d.transcribe).toHaveBeenCalledWith(speech, expect.objectContaining({ engine: 'local' }));
+  });
+
+  it('skips the cleanup when no Groq key is set (local mode without account)', async () => {
+    const { d, states } = deps(settings({ engine: 'local', apiKey: '' }));
+    expect(await processRecording(speech, d)).toBe('euh bonjour');
+    expect(d.cleanup).not.toHaveBeenCalled();
+    expect(states).toEqual(['transcribing', 'done:msg.pasted']);
   });
 
   it('raw mode skips the LLM', async () => {

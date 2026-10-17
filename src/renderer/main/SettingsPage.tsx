@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { UI_LANGUAGES, type Lang, type MessageKey } from '../../shared/i18n';
 import type { Settings, TestResult } from '../../shared/types';
 import { useI18n } from './i18n';
+import { LocalModels } from './LocalModels';
 import { Card, Icon, Keycap, Row, Switch } from './ui';
 
 interface Props {
@@ -63,6 +64,14 @@ export function SettingsPage({ settings, update }: Props) {
     if (apiKey.trim() !== settings.apiKey) await update({ apiKey: apiKey.trim() });
   };
 
+  // Save while typing/pasting too: a key must not be lost if the window closes before blur.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (apiKey.trim() !== settings.apiKey) void update({ apiKey: apiKey.trim() });
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [apiKey, settings.apiKey, update]);
+
   const testKey = async () => {
     setTesting(true);
     await saveKey();
@@ -89,11 +98,23 @@ export function SettingsPage({ settings, update }: Props) {
         </div>
       </header>
 
+      <Card title={t('settings.engine.title')} description={t('settings.engine.desc')}>
+        <div className="segmented engine-switch">
+          <button className={settings.engine === 'cloud' ? 'active' : ''} onClick={() => update({ engine: 'cloud' })}>
+            {t('settings.engine.cloud')}
+          </button>
+          <button className={settings.engine === 'local' ? 'active' : ''} onClick={() => update({ engine: 'local' })}>
+            {t('settings.engine.local')}
+          </button>
+        </div>
+        {settings.engine === 'local' && <LocalModels settings={settings} update={update} />}
+      </Card>
+
       <Card
         title={t('settings.key.title')}
         description={
           <>
-            {t('settings.key.desc')}{' '}
+            {t(settings.engine === 'local' ? 'settings.key.descLocal' : 'settings.key.desc')}{' '}
             <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer">
               {t('settings.key.link')}
             </a>
@@ -178,19 +199,21 @@ export function SettingsPage({ settings, update }: Props) {
       </Card>
 
       <Card title={t('settings.models')}>
-        <Row label={t('settings.transcriptionModel')}>
-          <select
-            className="select"
-            value={settings.transcriptionModel}
-            onChange={(e) => update({ transcriptionModel: e.target.value })}
-          >
-            {modelOptions(TRANSCRIPTION_MODELS, settings.transcriptionModel).map(([value, name]) => (
-              <option key={value} value={value}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </Row>
+        {settings.engine === 'cloud' && (
+          <Row label={t('settings.transcriptionModel')}>
+            <select
+              className="select"
+              value={settings.transcriptionModel}
+              onChange={(e) => update({ transcriptionModel: e.target.value })}
+            >
+              {modelOptions(TRANSCRIPTION_MODELS, settings.transcriptionModel).map(([value, name]) => (
+                <option key={value} value={value}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </Row>
+        )}
         <Row label={t('settings.cleanup')} hint={t('settings.cleanup.hint')}>
           <Switch
             label={t('settings.cleanup')}

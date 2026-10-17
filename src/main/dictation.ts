@@ -12,7 +12,7 @@ export const MIN_PEAK_RMS = 0.01;
 
 export interface DictationDeps {
   getSettings(): Settings;
-  transcribe(audio: Uint8Array, mimeType: string, settings: Settings): Promise<string>;
+  transcribe(rec: RecordingPayload, settings: Settings): Promise<string>;
   cleanup(text: string, settings: Settings): Promise<string>;
   paste(text: string, restoreClipboard: boolean): Promise<void>;
   addHistory(entry: Omit<HistoryEntry, 'id' | 'createdAt'>): void;
@@ -28,7 +28,7 @@ export async function processRecording(rec: RecordingPayload, deps: DictationDep
 
   try {
     deps.setState('transcribing');
-    const raw = await deps.transcribe(new Uint8Array(rec.audio), rec.mimeType, settings);
+    const raw = await deps.transcribe(rec, settings);
     if (!raw) {
       deps.setState('empty', 'msg.nothingHeard');
       return null;
@@ -37,7 +37,8 @@ export async function processRecording(rec: RecordingPayload, deps: DictationDep
     let text = raw;
     let cleaned = false;
     let fellBack = false;
-    if (settings.cleanupEnabled) {
+    // Cleanup needs the Groq API: in local mode without a key, paste the raw transcript.
+    if (settings.cleanupEnabled && settings.apiKey) {
       deps.setState('cleaning');
       try {
         text = await deps.cleanup(raw, settings);

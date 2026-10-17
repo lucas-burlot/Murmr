@@ -18,6 +18,7 @@
     "dist:linux": "npm run build && electron-builder --linux"
   },
   "dependencies": {
+    "@fugood/whisper.node": "^1.2.0-rc.1",
     "uiohook-napi": "^1.5.5"
   },
   "devDependencies": {
@@ -42,7 +43,8 @@
     },
     "files": [
       "out/**",
-      "package.json"
+      "package.json",
+      "!node_modules/@fugood/node-whisper-wasm{,/**}"
     ],
     "extraResources": [
       {
@@ -81,5 +83,8 @@
       "category": "Utility",
       "maintainer": "Lucas Burlot"
     }
+  },
+  "allowScripts": {
+    "@fugood/whisper.node": false
   }
 }

@@ -1,7 +1,7 @@
 import type { Settings } from '../../shared/types';
 import type { Page } from './App';
 import { HistoryItem } from './HistoryPage';
-import { useHistory, usePermissions } from './hooks';
+import { useHistory, useModels, usePermissions } from './hooks';
 import { useI18n } from './i18n';
 import { Card, Icon, Keycap } from './ui';
 
@@ -16,6 +16,9 @@ interface Props {
 export function HomePage({ settings, update, navigate }: Props) {
   const history = useHistory();
   const [perms, request] = usePermissions();
+  const { models } = useModels();
+  const local = settings.engine === 'local';
+  const modelReady = models.some((m) => m.id === settings.localModel && m.downloaded);
   const { t, tn, keyName, locale } = useI18n();
 
   const words = history.reduce((n, e) => n + e.text.split(/\s+/).filter(Boolean).length, 0);
@@ -23,14 +26,37 @@ export function HomePage({ settings, update, navigate }: Props) {
   const savedMinutes = Math.max(0, Math.round(words / TYPING_WPM - spokenMinutes));
   const hold = settings.mode === 'hold';
 
-  const steps = [
-    {
-      done: !!settings.apiKey,
-      title: t('home.step.key.title'),
-      text: t('home.step.key.text'),
-      button: t('home.step.key.button'),
-      onClick: () => navigate('settings'),
-    },
+  type Step = {
+    done: boolean;
+    title: string;
+    text: string;
+    button: string;
+    onClick: () => void;
+    secondary?: { label: string; onClick: () => void };
+  };
+  const steps: Step[] = [
+    local
+      ? {
+          done: modelReady,
+          title: t('home.step.model.title'),
+          text: t('home.step.model.text'),
+          button: t('home.step.model.button'),
+          onClick: () => navigate('settings'),
+        }
+      : {
+          done: !!settings.apiKey,
+          title: t('home.step.key.title'),
+          text: t('home.step.key.text'),
+          button: t('home.step.key.button'),
+          onClick: () => navigate('settings'),
+          secondary: {
+            label: t('home.step.key.alt'),
+            onClick: () => {
+              void update({ engine: 'local' });
+              navigate('settings');
+            },
+          },
+        },
     {
       done: perms?.microphone === 'granted',
       title: t('home.step.mic.title'),
@@ -43,7 +69,7 @@ export function HomePage({ settings, update, navigate }: Props) {
           {
             done: perms.accessibility && perms.keyboardHookRunning,
             title: t('home.step.ax.title'),
-            text: t('home.step.ax.text'),
+            text: t(perms.devMode ? 'home.step.ax.textDev' : 'home.step.ax.text'),
             button: t('home.step.ax.button'),
             onClick: () => request('accessibility'),
           },
@@ -70,6 +96,11 @@ export function HomePage({ settings, update, navigate }: Props) {
                 <div className="step-text">
                   <strong>{step.title}</strong>
                   <span className="muted">{step.text}</span>
+                  {!step.done && step.secondary && (
+                    <button className="link-btn" onClick={step.secondary.onClick}>
+                      {step.secondary.label}
+                    </button>
+                  )}
                 </div>
                 {!step.done && (
                   <button className="btn primary" onClick={step.onClick}>
@@ -99,6 +130,7 @@ export function HomePage({ settings, update, navigate }: Props) {
             <Icon name="sparkles" size={22} />
             <strong>{t('home.mode.ai.title')}</strong>
             <span className="muted">{t('home.mode.ai.text')}</span>
+            {!settings.apiKey && <span className="mode-note">{t('home.mode.ai.needsKey')}</span>}
           </button>
         </div>
       </Card>

@@ -33,6 +33,13 @@ const api: MurmrAPI = {
     request: (kind) => ipcRenderer.invoke('permissions:request', kind),
     onChange: (cb) => subscribe('permissions:changed', cb),
   },
+  models: {
+    list: () => ipcRenderer.invoke('models:list'),
+    download: (id) => ipcRenderer.invoke('models:download', id),
+    cancel: (id) => ipcRenderer.invoke('models:cancel', id),
+    remove: (id) => ipcRenderer.invoke('models:remove', id),
+    onProgress: (cb) => subscribe('models:progress', cb),
+  },
   openExternal: (url) => ipcRenderer.invoke('app:open-external', url),
   copy: (text) => ipcRenderer.invoke('app:copy', text),
   overlay: {

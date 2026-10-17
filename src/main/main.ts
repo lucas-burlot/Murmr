@@ -14,6 +14,7 @@ import {
 import path from 'node:path';
 import { uIOhook } from 'uiohook-napi';
 import { keyLabel, translate, type MessageKey, type Vars } from '../shared/i18n';
+import type { LocalModelId } from '../shared/models';
 import {
   IPC,
   type CaptureResult,
@@ -29,6 +30,8 @@ import * as groq from './groq';
 import { HistoryStore } from './history';
 import { ESCAPE_KEYCODE, HotkeyMachine } from './hotkey';
 import { isAllowedHotkey, keyName } from './keys';
+import { LocalWhisper } from './local-whisper';
+import { ModelManager } from './models';
 import { pasteText } from './paste';
 import { loadSettings, saveSettings } from './settings';
 
@@ -54,6 +57,8 @@ let state: DictationState = 'idle';
 let hideTimer: NodeJS.Timeout | undefined;
 let keyboardHookRunning = false;
 let captureResolver: ((r: CaptureResult) => void) | null = null;
+let models: ModelManager;
+const localWhisper = new LocalWhisper();
 
 const hotkeys = new HotkeyMachine(0, 'hold', {
   start: startDictation,
@@ -74,12 +79,18 @@ function init(): void {
     broadcast(IPC.historyChanged, entries),
   );
   hotkeys.configure(settings.hotkey.keycode, settings.mode);
+  models = new ModelManager(path.join(app.getPath('userData'), 'models'), (progress) => {
+    broadcast(IPC.modelsProgress, progress);
+    if (progress.state === 'done') prepareLocalEngine();
+  });
 
   // Only our own local pages are loaded; let them use the microphone.
   session.defaultSession.setPermissionRequestHandler((_wc, permission, cb) => cb(permission === 'media'));
   session.defaultSession.setPermissionCheckHandler((_wc, permission) => permission === 'media');
 
   if (isMac) {
+    // Packaged builds use icon.icns; in development the generic Electron.app runs, so set it here.
+    if (!app.isPackaged) app.dock?.setIcon(path.join(__dirname, '../../build/icon.png'));
     app.dock?.hide(); // live in the menu bar; the dock icon appears with the main window
     Menu.setApplicationMenu(Menu.buildFromTemplate([{ role: 'appMenu' }, { role: 'editMenu' }]));
   } else {
@@ -101,7 +112,24 @@ function init(): void {
   if (isMac && systemPreferences.getMediaAccessStatus('microphone') === 'not-determined') {
     void systemPreferences.askForMediaAccess('microphone');
   }
-  if (!settings.apiKey || !keyboardHookRunning) showMainWindow();
+  prepareLocalEngine();
+  if (!engineReady() || !keyboardHookRunning) showMainWindow();
+}
+
+// --- transcription engine ------------------------------------------------------
+
+function engineReady(): boolean {
+  return settings.engine === 'local' ? models.isDownloaded(settings.localModel) : !!settings.apiKey;
+}
+
+/** Loads the local model ahead of time so the first dictation doesn't wait for it. */
+function prepareLocalEngine(): void {
+  if (settings.engine !== 'local') {
+    void localWhisper.release(); // free memory when using the cloud
+    return;
+  }
+  if (!models.isDownloaded(settings.localModel)) return;
+  localWhisper.load(models.path(settings.localModel)).catch((err) => console.error('Local model failed to load', err));
 }
 
 app.on('window-all-closed', () => {
@@ -135,6 +163,7 @@ function startKeyboardHook(): void {
     uIOhook.removeAllListeners();
   }
   broadcastPermissions();
+  updateTray();
 }
 
 function finishCapture(keycode: number): void {
@@ -173,15 +202,20 @@ function sendOverlay(command: OverlayCommand): void {
 
 function startDictation(): void {
   if (state === 'recording' || state === 'transcribing' || state === 'cleaning') return;
-  if (!settings.apiKey) {
+  if (!engineReady()) {
     showOverlay();
-    setState('error', 'error.noApiKey');
+    setState('error', settings.engine === 'local' ? 'error.noLocalModel' : 'error.noApiKey');
     showMainWindow();
     return;
   }
   showOverlay();
   setState('recording');
-  sendOverlay({ type: 'start', deviceId: settings.microphoneId, sounds: settings.sounds });
+  sendOverlay({
+    type: 'start',
+    deviceId: settings.microphoneId,
+    sounds: settings.sounds,
+    pcm: settings.engine === 'local',
+  });
 }
 
 function stopDictation(): void {
@@ -200,12 +234,20 @@ async function handleRecording(payload: RecordingPayload): Promise<void> {
   const api = () => ({ apiKey: settings.apiKey, baseUrl: settings.baseUrl });
   await processRecording(payload, {
     getSettings: () => settings,
-    transcribe: (audio, mime, s) =>
-      groq.transcribe(api(), audio, mime, {
+    transcribe: (rec, s) => {
+      if (s.engine === 'local') {
+        if (!rec.pcm16) throw new Error('missing PCM audio');
+        return localWhisper.transcribe(models.path(s.localModel), rec.pcm16, {
+          language: s.language,
+          dictionary: s.dictionary,
+        });
+      }
+      return groq.transcribe(api(), new Uint8Array(rec.audio), rec.mimeType, {
         model: s.transcriptionModel,
         language: s.language,
         dictionary: s.dictionary,
-      }),
+      });
+    },
     cleanup: (text, s) => groq.cleanup(api(), text, { model: s.cleanupModel, dictionary: s.dictionary }),
     paste: pasteText,
     addHistory: (entry) => history.add(entry),
@@ -304,7 +346,7 @@ function createTray(): void {
 function updateTray(): void {
   if (!tray) return;
   tray.setImage(trayImage(state === 'recording'));
-  const status = `Murmr — ${t(`state.${state}`)}`;
+  const status = keyboardHookRunning || !isMac ? `Murmr — ${t(`state.${state}`)}` : t('tray.hookInactive');
   tray.setToolTip(status);
   tray.setContextMenu(
     Menu.buildFromTemplate([
@@ -337,6 +379,7 @@ function updateSettings(patch: Partial<Settings>): Settings {
   settings = { ...settings, ...patch };
   saveSettings(settings);
   if (patch.hotkey || patch.mode) hotkeys.configure(settings.hotkey.keycode, settings.mode);
+  if (patch.engine || patch.localModel) prepareLocalEngine();
   if (patch.openAtLogin !== undefined && process.platform !== 'linux') {
     app.setLoginItemSettings({ openAtLogin: settings.openAtLogin });
   }
@@ -356,6 +399,7 @@ function permissions(): Permissions {
     microphone: microphoneStatus(),
     accessibility: accessibilityGranted(),
     keyboardHookRunning,
+    devMode: !app.isPackaged,
   };
 }
 
@@ -388,6 +432,15 @@ function registerIpc(): void {
     if (!keyboardHookRunning) return { ok: false, reason: 'hookInactive' };
     captureResolver?.({ ok: false, reason: 'cancelled' });
     return new Promise<CaptureResult>((resolve) => (captureResolver = resolve));
+  });
+  ipcMain.handle(IPC.modelsList, () => models.list());
+  ipcMain.handle(IPC.modelsDownload, (_e, id: LocalModelId) => {
+    void models.download(id); // progress is reported through IPC.modelsProgress
+  });
+  ipcMain.handle(IPC.modelsCancel, (_e, id: LocalModelId) => models.cancel(id));
+  ipcMain.handle(IPC.modelsRemove, async (_e, id: LocalModelId) => {
+    if (settings.engine === 'local' && settings.localModel === id) await localWhisper.release();
+    models.remove(id);
   });
   ipcMain.handle(IPC.openExternal, (_e, url: string) => {
     if (url.startsWith('https://')) return shell.openExternal(url);

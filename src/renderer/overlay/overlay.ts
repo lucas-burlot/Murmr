@@ -54,6 +54,20 @@ interface Session {
 let session: Session | null = null;
 let starting: Promise<void> | null = null;
 let cancelled = false;
+let wantPcm = false; // the local engine needs raw 16 kHz PCM instead of Opus
+
+/** Decodes the Opus recording and resamples it to 16 kHz mono signed 16-bit PCM. */
+async function toPcm16(blob: Blob): Promise<ArrayBuffer> {
+  const ctx = new AudioContext({ sampleRate: 16_000 });
+  try {
+    const samples = (await ctx.decodeAudioData(await blob.arrayBuffer())).getChannelData(0);
+    const pcm = new Int16Array(samples.length);
+    for (let i = 0; i < samples.length; i++) pcm[i] = Math.max(-1, Math.min(1, samples[i])) * 0x7fff;
+    return pcm.buffer;
+  } finally {
+    void ctx.close();
+  }
+}
 
 async function openMicrophone(deviceId: string): Promise<MediaStream> {
   const audio: MediaTrackConstraints = {
@@ -153,8 +167,10 @@ async function stop(): Promise<void> {
   });
   release(s);
   beep([880, 660]);
-  const audio = await new Blob(s.chunks, { type: MIME_TYPE }).arrayBuffer();
-  await window.murmr.overlay.sendRecording({ audio, mimeType: MIME_TYPE, durationMs, peakRms: s.peakRms });
+  const blob = new Blob(s.chunks, { type: MIME_TYPE });
+  const audio = await blob.arrayBuffer();
+  const pcm16 = wantPcm && blob.size ? await toPcm16(blob) : undefined;
+  await window.murmr.overlay.sendRecording({ audio, mimeType: MIME_TYPE, durationMs, peakRms: s.peakRms, pcm16 });
 }
 
 function cancel(): void {
@@ -169,6 +185,7 @@ function cancel(): void {
 window.murmr.overlay.onCommand((cmd: OverlayCommand) => {
   if (cmd.type === 'start') {
     soundsEnabled = cmd.sounds;
+    wantPcm = cmd.pcm;
     starting = start(cmd.deviceId).catch((err: Error) => {
       if (err.name === 'NotAllowedError') window.murmr.overlay.reportError('error.micDenied');
       else window.murmr.overlay.reportError('error.micUnavailable', err.message);

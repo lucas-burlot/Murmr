@@ -5,6 +5,7 @@ import { app, safeStorage } from 'electron';
 import fs from 'node:fs';
 import path from 'node:path';
 import { isLang } from '../shared/i18n';
+import { isLocalModelId } from '../shared/models';
 import type { Settings } from '../shared/types';
 import { DEFAULT_BASE_URL } from './groq';
 import { defaultHotkey } from './keys';
@@ -13,6 +14,8 @@ const file = () => path.join(app.getPath('userData'), 'settings.json');
 
 export function defaultSettings(): Settings {
   return {
+    engine: 'cloud',
+    localModel: 'small',
     apiKey: '',
     baseUrl: DEFAULT_BASE_URL,
     transcriptionModel: 'whisper-large-v3',
@@ -53,6 +56,8 @@ export function loadSettings(): Settings {
   const settings = { ...defaults, ...known, apiKey: key };
   if (!settings.hotkey?.name) settings.hotkey = defaults.hotkey;
   if (!isLang(settings.uiLanguage)) settings.uiLanguage = defaults.uiLanguage;
+  if (settings.engine !== 'local' && settings.engine !== 'cloud') settings.engine = defaults.engine;
+  if (!isLocalModelId(settings.localModel)) settings.localModel = defaults.localModel;
   return settings;
 }
 

@@ -730,6 +730,88 @@ nav {
   font-size: 13px;
 }
 
+/* --- engine & local models ---------------------------------------------------- */
+
+.engine-switch {
+  align-self: flex-start;
+}
+
+.model-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.model-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--surface-2);
+}
+
+.model-row.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.model-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.model-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.progress {
+  width: 140px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.progress span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 200ms;
+}
+
+.progress-label {
+  min-width: 34px;
+  font-variant-numeric: tabular-nums;
+}
+
+.link-btn {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-2);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.link-btn:hover {
+  text-decoration: underline;
+}
+
+.mode-note {
+  color: var(--warning);
+  font-size: 12px;
+}
+
 @keyframes blink {
   50% {
     opacity: 0.3;

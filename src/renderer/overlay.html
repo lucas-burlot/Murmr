@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; media-src 'self' blob: mediastream:" />
+    <title>Murmr</title>
+  </head>
+  <body>
+    <div id="pill" class="pill hidden">
+      <span class="dot"></span>
+      <canvas id="wave" width="280" height="56"></canvas>
+      <span class="spinner"><i></i><i></i><i></i></span>
+      <span class="icon"></span>
+      <span id="label" class="label"></span>
+      <span id="timer" class="timer">0:00</span>
+    </div>
+    <script type="module" src="./overlay/overlay.ts"></script>
+  </body>
+</html>

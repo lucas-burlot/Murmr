@@ -1,0 +1,344 @@
+// UI translations. English is the reference: TypeScript rejects a French
+// dictionary that misses a key. No dependencies, usable from every process.
+
+export type Lang = 'en' | 'fr';
+
+export const UI_LANGUAGES: Array<{ code: Lang; name: string }> = [
+  { code: 'en', name: 'English' },
+  { code: 'fr', name: 'Français' },
+];
+
+const en = {
+  // dictation states (sidebar, tray, overlay)
+  'state.idle': 'Ready',
+  'state.recording': 'Listening…',
+  'state.transcribing': 'Transcribing…',
+  'state.cleaning': 'Cleaning up…',
+  'state.done': 'Pasted',
+  'state.empty': 'Nothing heard',
+  'state.cancelled': 'Cancelled',
+  'state.error': 'Error',
+  'msg.pasted': 'Pasted',
+  'msg.pastedRaw': 'Pasted (cleanup unavailable)',
+  'msg.nothingHeard': 'Nothing heard',
+  'msg.nothingToPaste': 'Nothing to paste',
+  'msg.cancelled': 'Cancelled',
+
+  // errors
+  'error.noApiKey': 'Add your free Groq API key in Murmr',
+  'error.invalidKey': 'Invalid Groq API key',
+  'error.rateLimit': 'Groq free quota reached, retry soon',
+  'error.network': 'Network unavailable ({detail})',
+  'error.http': 'Error {detail}',
+  'error.badResponse': 'Unexpected response from the cleanup model',
+  'error.generic': '{detail}',
+  'error.micDenied': 'Microphone access denied',
+  'error.micUnavailable': 'Microphone unavailable: {detail}',
+  'test.ok': 'Valid key ✓',
+  'test.empty': 'No key entered',
+
+  // tray menu
+  'tray.hotkey': 'Shortcut: {key}',
+  'tray.open': 'Open Murmr',
+  'tray.cleanup': 'AI cleanup (Groq)',
+  'tray.quit': 'Quit Murmr',
+
+  // hotkey capture
+  'capture.notAllowed': '“{key}” would type text. Pick a modifier key (Ctrl, Option/Alt, Cmd, Shift) or an F key.',
+  'capture.hookInactive': 'Keyboard listening is not active (Accessibility permission missing).',
+
+  // navigation
+  'nav.home': 'Home',
+  'nav.history': 'History',
+  'nav.dictionary': 'Dictionary',
+  'nav.settings': 'Settings',
+  'sidebar.hold': 'Hold {key}',
+  'sidebar.press': 'Press {key}',
+
+  // home
+  'home.title.hold': 'Hold {key} and speak.',
+  'home.title.toggle': 'Press {key} and speak.',
+  'home.subtitle.hold': 'Release: your text is pasted wherever your cursor is, in any app. {esc} to cancel.',
+  'home.subtitle.toggle': 'Press again: your text is pasted wherever your cursor is, in any app. {esc} to cancel.',
+  'home.setup.title': 'Getting started',
+  'home.setup.desc': 'One-time setup.',
+  'home.step.key.title': 'Free Groq API key',
+  'home.step.key.text': 'Used to transcribe your voice (Whisper). No credit card required.',
+  'home.step.key.button': 'Add my key',
+  'home.step.mic.title': 'Microphone access',
+  'home.step.mic.text': 'To hear your voice while you hold the key.',
+  'home.step.mic.button': 'Allow',
+  'home.step.ax.title': 'Accessibility',
+  'home.step.ax.text':
+    'To detect the dictation key and paste the text. Enable Murmr (or Electron) in the list, then come back here.',
+  'home.step.ax.button': 'Open settings',
+  'home.mode.title': 'Dictation mode',
+  'home.mode.desc': 'Switch anytime, here or from the tray icon.',
+  'home.mode.raw.title': 'Raw Whisper',
+  'home.mode.raw.text': 'The transcription as is. The fastest.',
+  'home.mode.ai.title': 'Whisper + AI cleanup',
+  'home.mode.ai.text': 'No “um”s, self-corrections applied, clean punctuation.',
+  'home.stats.words': 'words dictated',
+  'home.stats.dictations': 'dictations',
+  'home.stats.minutes': '{n} min',
+  'home.stats.saved': 'saved vs typing',
+  'home.recent': 'Recent dictations',
+  'home.seeAll': 'See all',
+
+  // history
+  'history.title': 'History',
+  'history.desc': 'Your dictations stay on your computer (last 500).',
+  'history.clear': 'Clear all',
+  'history.clearConfirm': 'Clear the entire history?',
+  'history.empty': 'No dictations yet.',
+  'history.search': 'Search history…',
+  'history.today': 'Today',
+  'history.yesterday': 'Yesterday',
+  'history.badge.ai': 'AI',
+  'history.badge.raw': 'Raw',
+  'history.original': 'Original transcription: {text}',
+  'history.copy': 'Copy',
+  'history.showOriginal': 'Show original transcription',
+  'history.delete': 'Delete',
+
+  // dictionary
+  'dictionary.title': 'Dictionary',
+  'dictionary.desc':
+    'Names, brands, jargon: Murmr will spell them exactly like this. They are sent to Whisper and to the AI cleanup.',
+  'dictionary.placeholder': 'e.g. Kubernetes, Septeo, Dr. Smith…',
+  'dictionary.add': 'Add',
+  'dictionary.empty': 'No words yet. Tip: separate several words with commas.',
+  'dictionary.remove': 'Remove {word}',
+
+  // settings
+  'settings.title': 'Settings',
+  'settings.desc': 'Everything is saved automatically.',
+  'settings.key.title': 'Groq API key',
+  'settings.key.desc': 'Free, no credit card: about 8 hours of transcription per day.',
+  'settings.key.link': 'Get a key at console.groq.com',
+  'settings.key.show': 'Show',
+  'settings.key.hide': 'Hide',
+  'settings.key.test': 'Test',
+  'settings.key.testing': 'Testing…',
+  'settings.dictation': 'Dictation',
+  'settings.hotkey': 'Shortcut',
+  'settings.hotkey.hint': 'A modifier key on its own (Option, Ctrl, Cmd…) or an F key.',
+  'settings.hotkey.press': 'Press a key…',
+  'settings.hotkey.change': 'Change',
+  'settings.mode': 'Mode',
+  'settings.mode.hint': '“Press to start / stop” is handy for long dictations.',
+  'settings.mode.hold': 'Hold',
+  'settings.mode.toggle': 'Press to start / stop',
+  'settings.language': 'Spoken language',
+  'settings.language.auto': 'Auto-detect',
+  'settings.mic': 'Microphone',
+  'settings.mic.default': 'System default microphone',
+  'settings.mic.unnamed': 'Microphone',
+  'settings.models': 'Transcription & cleanup',
+  'settings.transcriptionModel': 'Transcription model',
+  'settings.cleanup': 'AI cleanup',
+  'settings.cleanup.hint': 'Removes hesitations, applies your self-corrections, adds punctuation.',
+  'settings.cleanupModel': 'Cleanup model',
+  'settings.general': 'General',
+  'settings.uiLanguage': 'Interface language',
+  'settings.sounds': 'Sounds',
+  'settings.sounds.hint': 'Beep at the start and end of dictation.',
+  'settings.restoreClipboard': 'Restore clipboard',
+  'settings.restoreClipboard.hint': 'Puts back what you had copied after pasting the dictation.',
+  'settings.openAtLogin': 'Launch at login',
+  'settings.advanced': 'Advanced',
+  'settings.advanced.desc': 'Any OpenAI-compatible API. Groq is the recommended free option.',
+  'settings.baseUrl': 'API URL',
+  'model.whisper': 'Whisper large v3 — most accurate',
+  'model.whisperTurbo': 'Whisper large v3 turbo — faster',
+  'model.gptOss20': 'GPT-OSS 20B — fast (recommended)',
+  'model.gptOss120': 'GPT-OSS 120B — more polished',
+  'model.llama70': 'Llama 3.3 70B',
+} as const;
+
+export type MessageKey = keyof typeof en;
+
+const fr: Record<MessageKey, string> = {
+  'state.idle': 'Prêt',
+  'state.recording': 'Écoute…',
+  'state.transcribing': 'Transcription…',
+  'state.cleaning': 'Nettoyage…',
+  'state.done': 'Collé',
+  'state.empty': 'Rien entendu',
+  'state.cancelled': 'Annulé',
+  'state.error': 'Erreur',
+  'msg.pasted': 'Collé',
+  'msg.pastedRaw': 'Collé (nettoyage indisponible)',
+  'msg.nothingHeard': 'Rien entendu',
+  'msg.nothingToPaste': 'Rien à coller',
+  'msg.cancelled': 'Annulé',
+
+  'error.noApiKey': 'Ajoute ta clé Groq gratuite dans Murmr',
+  'error.invalidKey': 'Clé API Groq invalide',
+  'error.rateLimit': 'Quota Groq atteint, réessaie bientôt',
+  'error.network': 'Réseau indisponible ({detail})',
+  'error.http': 'Erreur {detail}',
+  'error.badResponse': 'Réponse inattendue du modèle de nettoyage',
+  'error.generic': '{detail}',
+  'error.micDenied': 'Accès au micro refusé',
+  'error.micUnavailable': 'Micro indisponible : {detail}',
+  'test.ok': 'Clé valide ✓',
+  'test.empty': 'Aucune clé saisie',
+
+  'tray.hotkey': 'Raccourci : {key}',
+  'tray.open': 'Ouvrir Murmr',
+  'tray.cleanup': 'Nettoyage IA (Groq)',
+  'tray.quit': 'Quitter Murmr',
+
+  'capture.notAllowed':
+    '« {key} » écrirait du texte. Choisis une touche modificatrice (Ctrl, Option/Alt, Cmd, Maj) ou une touche F.',
+  'capture.hookInactive': "L'écoute du clavier n'est pas active (permission Accessibilité manquante).",
+
+  'nav.home': 'Accueil',
+  'nav.history': 'Historique',
+  'nav.dictionary': 'Dictionnaire',
+  'nav.settings': 'Réglages',
+  'sidebar.hold': 'Maintiens {key}',
+  'sidebar.press': 'Appuie sur {key}',
+
+  'home.title.hold': 'Maintiens {key} et parle.',
+  'home.title.toggle': 'Appuie sur {key} et parle.',
+  'home.subtitle.hold':
+    "Relâche : ton texte est collé là où se trouve ton curseur, dans n'importe quelle application. {esc} pour annuler.",
+  'home.subtitle.toggle':
+    "Appuie à nouveau : ton texte est collé là où se trouve ton curseur, dans n'importe quelle application. {esc} pour annuler.",
+  'home.setup.title': 'Pour commencer',
+  'home.setup.desc': 'À faire une seule fois.',
+  'home.step.key.title': 'Clé API Groq gratuite',
+  'home.step.key.text': 'Elle sert à transcrire ta voix (Whisper). Aucune carte bancaire requise.',
+  'home.step.key.button': 'Ajouter ma clé',
+  'home.step.mic.title': 'Accès au micro',
+  'home.step.mic.text': 'Pour entendre ta voix pendant que tu maintiens la touche.',
+  'home.step.mic.button': 'Autoriser',
+  'home.step.ax.title': 'Accessibilité',
+  'home.step.ax.text':
+    'Pour détecter la touche de dictée et coller le texte. Active Murmr (ou Electron) dans la liste, puis reviens ici.',
+  'home.step.ax.button': 'Ouvrir les réglages',
+  'home.mode.title': 'Mode de dictée',
+  'home.mode.desc': "Change à tout moment, ici ou depuis l'icône de la barre système.",
+  'home.mode.raw.title': 'Whisper brut',
+  'home.mode.raw.text': 'La transcription telle quelle. Le plus rapide.',
+  'home.mode.ai.title': 'Whisper + nettoyage IA',
+  'home.mode.ai.text': 'Sans « euh », autocorrections appliquées, ponctuation soignée.',
+  'home.stats.words': 'mots dictés',
+  'home.stats.dictations': 'dictées',
+  'home.stats.minutes': '{n} min',
+  'home.stats.saved': 'gagnées vs clavier',
+  'home.recent': 'Dernières dictées',
+  'home.seeAll': 'Tout voir',
+
+  'history.title': 'Historique',
+  'history.desc': 'Tes dictées restent sur ton ordinateur (500 dernières).',
+  'history.clear': 'Tout effacer',
+  'history.clearConfirm': "Effacer tout l'historique ?",
+  'history.empty': "Aucune dictée pour l'instant.",
+  'history.search': "Rechercher dans l'historique…",
+  'history.today': "Aujourd'hui",
+  'history.yesterday': 'Hier',
+  'history.badge.ai': 'IA',
+  'history.badge.raw': 'Brut',
+  'history.original': 'Transcription originale : {text}',
+  'history.copy': 'Copier',
+  'history.showOriginal': 'Voir la transcription originale',
+  'history.delete': 'Supprimer',
+
+  'dictionary.title': 'Dictionnaire',
+  'dictionary.desc':
+    'Noms propres, marques, jargon : Murmr les écrira exactement comme ici. Ils sont transmis à Whisper et au nettoyage IA.',
+  'dictionary.placeholder': 'Ex. : Septeo, Kubernetes, Mme Dupont…',
+  'dictionary.add': 'Ajouter',
+  'dictionary.empty': "Aucun mot pour l'instant. Astuce : sépare plusieurs mots par des virgules.",
+  'dictionary.remove': 'Retirer {word}',
+
+  'settings.title': 'Réglages',
+  'settings.desc': 'Tout est enregistré automatiquement.',
+  'settings.key.title': 'Clé API Groq',
+  'settings.key.desc': 'Gratuite, sans carte bancaire : environ 8 h de transcription par jour.',
+  'settings.key.link': 'Obtenir une clé sur console.groq.com',
+  'settings.key.show': 'Afficher',
+  'settings.key.hide': 'Masquer',
+  'settings.key.test': 'Tester',
+  'settings.key.testing': 'Test…',
+  'settings.dictation': 'Dictée',
+  'settings.hotkey': 'Raccourci',
+  'settings.hotkey.hint': 'Une touche modificatrice seule (Option, Ctrl, Cmd…) ou une touche F.',
+  'settings.hotkey.press': 'Appuie sur une touche…',
+  'settings.hotkey.change': 'Modifier',
+  'settings.mode': 'Mode',
+  'settings.mode.hint': '« Appuyer » est pratique pour les longues dictées.',
+  'settings.mode.hold': 'Maintenir',
+  'settings.mode.toggle': 'Appuyer pour démarrer / arrêter',
+  'settings.language': 'Langue parlée',
+  'settings.language.auto': 'Détection automatique',
+  'settings.mic': 'Micro',
+  'settings.mic.default': 'Micro par défaut du système',
+  'settings.mic.unnamed': 'Micro',
+  'settings.models': 'Transcription et nettoyage',
+  'settings.transcriptionModel': 'Modèle de transcription',
+  'settings.cleanup': 'Nettoyage IA',
+  'settings.cleanup.hint': 'Retire les hésitations, applique tes autocorrections, ponctue.',
+  'settings.cleanupModel': 'Modèle de nettoyage',
+  'settings.general': 'Général',
+  'settings.uiLanguage': "Langue de l'interface",
+  'settings.sounds': 'Sons',
+  'settings.sounds.hint': 'Bip au début et à la fin de la dictée.',
+  'settings.restoreClipboard': 'Restaurer le presse-papiers',
+  'settings.restoreClipboard.hint': 'Remet ce que tu avais copié après avoir collé la dictée.',
+  'settings.openAtLogin': "Lancer au démarrage de l'ordinateur",
+  'settings.advanced': 'Avancé',
+  'settings.advanced.desc': "N'importe quelle API compatible OpenAI. Groq est le choix gratuit recommandé.",
+  'settings.baseUrl': "URL de l'API",
+  'model.whisper': 'Whisper large v3 — le plus précis',
+  'model.whisperTurbo': 'Whisper large v3 turbo — plus rapide',
+  'model.gptOss20': 'GPT-OSS 20B — rapide (recommandé)',
+  'model.gptOss120': 'GPT-OSS 120B — plus soigné',
+  'model.llama70': 'Llama 3.3 70B',
+};
+
+const DICTIONARIES: Record<Lang, Record<MessageKey, string>> = { en, fr };
+
+export type Vars = Record<string, string | number>;
+
+export function translate(lang: Lang, key: MessageKey, vars: Vars = {}): string {
+  const template = (DICTIONARIES[lang] ?? en)[key] ?? en[key];
+  return template.replace(/\{(\w+)\}/g, (match, name: string) => (name in vars ? String(vars[name]) : match));
+}
+
+export function isLang(value: unknown): value is Lang {
+  return value === 'en' || value === 'fr';
+}
+
+// Physical key names (uiohook-napi) shown to the user.
+const KEY_NAMES: Record<Lang, (mac: boolean) => Record<string, string>> = {
+  en: (mac) => ({
+    AltRight: mac ? 'Right Option' : 'Right Alt',
+    Alt: mac ? 'Left Option' : 'Left Alt',
+    CtrlRight: 'Right Ctrl',
+    Ctrl: 'Left Ctrl',
+    MetaRight: mac ? 'Right Cmd' : 'Right Windows',
+    Meta: mac ? 'Left Cmd' : 'Left Windows',
+    ShiftRight: 'Right Shift',
+    Shift: 'Left Shift',
+    Escape: 'Esc',
+  }),
+  fr: (mac) => ({
+    AltRight: mac ? 'Option droite' : 'Alt droit',
+    Alt: mac ? 'Option gauche' : 'Alt gauche',
+    CtrlRight: 'Ctrl droit',
+    Ctrl: 'Ctrl gauche',
+    MetaRight: mac ? 'Cmd droit' : 'Windows droit',
+    Meta: mac ? 'Cmd gauche' : 'Windows gauche',
+    ShiftRight: 'Maj droite',
+    Shift: 'Maj gauche',
+    Escape: 'Échap',
+  }),
+};
+
+export function keyLabel(name: string, platform: string, lang: Lang): string {
+  return KEY_NAMES[lang](platform === 'darwin')[name] ?? name;
+}

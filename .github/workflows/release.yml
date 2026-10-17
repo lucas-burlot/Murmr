@@ -1,0 +1,54 @@
+# Builds the installers on each OS and attaches them to a draft GitHub Release.
+# Triggered by pushing a version tag:  git tag v1.0.0 && git push origin v1.0.0
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS (Apple Silicon + Intel)
+            os: macos-latest
+            args: --mac
+          - name: Windows
+            os: windows-latest
+            args: --win
+          - name: Linux
+            os: ubuntu-latest
+            args: --linux
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # npm only installs the native whisper.cpp binary for the runner's CPU;
+      # the Intel .dmg needs the x64 one as well.
+      - name: Add the Intel macOS whisper.cpp binary
+        if: runner.os == 'macOS'
+        shell: bash
+        run: npm install --no-save --force "@fugood/node-whisper-darwin-x64@$(node -p "require('@fugood/whisper.node/package.json').version")"
+
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+      - name: Build and upload installers
+        run: npx electron-builder ${{ matrix.args }} --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

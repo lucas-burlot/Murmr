@@ -1,11 +1,17 @@
 {
   "name": "murmr",
   "productName": "Murmr",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Free, open-source voice dictation: hold a key, speak, and your text is pasted. A Wispr Flow alternative.",
   "main": "out/main/main.js",
   "author": "Lucas Burlot",
   "license": "MIT",
+  "homepage": "https://github.com/lucas-burlot/Murmr",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lucas-burlot/Murmr.git"
+  },
+  "bugs": "https://github.com/lucas-burlot/Murmr/issues",
   "private": true,
   "scripts": {
     "build": "tsc -p tsconfig.node.json && vite build",
@@ -44,7 +50,8 @@
     "files": [
       "out/**",
       "package.json",
-      "!node_modules/@fugood/node-whisper-wasm{,/**}"
+      "!node_modules/@fugood/node-whisper-wasm{,/**}",
+      "!node_modules/@fugood/node-whisper-*-{cuda,vulkan,snapdragon}{,/**}"
     ],
     "extraResources": [
       {
@@ -59,16 +66,29 @@
     "mac": {
       "category": "public.app-category.productivity",
       "target": [
-        "dmg"
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
       ],
       "extendInfo": {
         "NSMicrophoneUsageDescription": "Murmr uses the microphone to transcribe your voice.",
         "LSUIElement": true
-      }
+      },
+      "identity": "-",
+      "hardenedRuntime": false
     },
     "win": {
       "target": [
-        "nsis"
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
       ]
     },
     "nsis": {
@@ -77,11 +97,30 @@
     },
     "linux": {
       "target": [
-        "AppImage",
-        "deb"
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
       "category": "Utility",
-      "maintainer": "Lucas Burlot"
+      "maintainer": "Lucas Burlot",
+      "executableName": "murmr",
+      "synopsis": "Free, open-source voice dictation"
+    },
+    "artifactName": "Murmr-${os}-${arch}.${ext}",
+    "publish": {
+      "provider": "github",
+      "owner": "lucas-burlot",
+      "repo": "Murmr",
+      "releaseType": "draft"
     }
   },
   "allowScripts": {

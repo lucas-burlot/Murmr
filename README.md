@@ -9,14 +9,15 @@
 **Free, open-source voice dictation for macOS, Windows and Linux.**<br />
 Hold a key, talk, and clean text lands wherever your cursor is: in any app.
 
+[![Latest release](https://img.shields.io/github/v/release/lucas-burlot/Murmr?style=flat-square&color=7c6cf6&label=release)](https://github.com/lucas-burlot/Murmr/releases/latest)
 [![License: MIT](https://img.shields.io/badge/license-MIT-7c6cf6?style=flat-square)](LICENSE)
-[![Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Windows%20%7C%20Linux-38bdf8?style=flat-square)](#-quick-start)
+[![Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Windows%20%7C%20Linux-38bdf8?style=flat-square)](#-download)
 [![Price](https://img.shields.io/badge/price-free%20forever-22c55e?style=flat-square)](#-why-murmr)
 [![Offline](https://img.shields.io/badge/works-offline-a855f7?style=flat-square)](#%EF%B8%8F-cloud-or-local-your-call)
 [![Electron](https://img.shields.io/badge/Electron-44-47848f?style=flat-square&logo=electron&logoColor=white)](https://www.electronjs.org)
 [![GitHub stars](https://img.shields.io/github/stars/lucas-burlot/Murmr?style=flat-square&color=f59e0b)](https://github.com/lucas-burlot/Murmr/stargazers)
 
-[**Features**](#-features) · [**Quick start**](#-quick-start) · [**How it works**](#-how-it-works) · [**FAQ**](#-faq) · [**Roadmap**](#%EF%B8%8F-roadmap)
+[**Download**](#-download) · [**Features**](#-features) · [**How it works**](#-how-it-works) · [**FAQ**](#-faq) · [**Roadmap**](#%EF%B8%8F-roadmap)
 
 <br />
 
@@ -135,9 +136,48 @@ Local models come from the official whisper.cpp repository and are **verified by
 
 > 💡 The optional AI cleanup always uses Groq. Without a key, local mode simply pastes the raw transcript, so Murmr works with **zero accounts**.
 
+## 📥 Download
+
+| Platform | Installer |
+| :--- | :--- |
+| 🍏 **macOS** · Apple Silicon (M1 and later) | [**Murmr-mac-arm64.dmg**](https://github.com/lucas-burlot/Murmr/releases/latest/download/Murmr-mac-arm64.dmg) |
+| 🍏 **macOS** · Intel | [**Murmr-mac-x64.dmg**](https://github.com/lucas-burlot/Murmr/releases/latest/download/Murmr-mac-x64.dmg) |
+| 🪟 **Windows** 10 / 11 | [**Murmr-win-x64.exe**](https://github.com/lucas-burlot/Murmr/releases/latest/download/Murmr-win-x64.exe) |
+| 🐧 **Linux** | [**AppImage**](https://github.com/lucas-burlot/Murmr/releases/latest/download/Murmr-linux-x86_64.AppImage) · [**.deb**](https://github.com/lucas-burlot/Murmr/releases/latest/download/Murmr-linux-amd64.deb) |
+
+All versions and release notes: [**Releases**](https://github.com/lucas-burlot/Murmr/releases) · [**Changelog**](CHANGELOG.md)
+
+<details>
+<summary><b>⚠️ First launch: the apps aren't code-signed yet</b></summary>
+
+<br />
+
+Murmr is free and doesn't pay for Apple / Microsoft certificates (yet), so your OS will warn you the first time:
+
+- **macOS**: open the `.dmg` and drag Murmr into *Applications*. On first launch macOS says it can't verify the developer: open *System Settings → Privacy & Security*, scroll down and click **Open Anyway**. (Or run `xattr -dr com.apple.quarantine /Applications/Murmr.app` once.)
+- **Windows**: SmartScreen shows *"Windows protected your PC"*: click **More info → Run anyway**.
+- **Linux**: `chmod +x Murmr-linux-x86_64.AppImage` then run it, or `sudo apt install ./Murmr-linux-amd64.deb`.
+
+The source code is right here if you'd rather build it yourself.
+
+</details>
+
 ## 🚀 Quick start
 
-> **Prebuilt installers are coming soon** to [Releases](https://github.com/lucas-burlot/Murmr/releases). Until then, it takes 3 commands:
+On first launch, a short checklist walks you through setup:
+
+1. **Pick your engine**: paste a free key from [console.groq.com/keys](https://console.groq.com/keys), *or* switch to **Local** and download a model.
+2. **Allow the microphone.**
+3. **macOS only: allow Accessibility** in *System Settings → Privacy & Security → Accessibility*, so Murmr can detect your hotkey and paste.
+
+Then hold **Right Option** / **Right Ctrl** and start talking. 🎉
+
+<details>
+<summary><b>🧑‍💻 Run from source</b></summary>
+
+<br />
+
+Requires [Node.js](https://nodejs.org) 22+.
 
 ```bash
 git clone https://github.com/lucas-burlot/Murmr.git
@@ -145,26 +185,9 @@ cd Murmr
 npm install && npm start
 ```
 
-Requires [Node.js](https://nodejs.org) 22+. On first launch, a short checklist walks you through setup:
+With `npm start`, macOS asks for Accessibility for the **terminal app** you launched Murmr from (Terminal, iTerm, VS Code…).
 
-1. **Pick your engine**: paste a free key from [console.groq.com/keys](https://console.groq.com/keys), *or* switch to **Local** and download a model.
-2. **Allow the microphone.**
-3. **macOS only: allow Accessibility** in *System Settings → Privacy & Security → Accessibility*, so Murmr can detect your hotkey and paste. With `npm start`, enable the **terminal app** you launched it from.
-
-Then hold **Right Option** / **Right Ctrl** and start talking. 🎉
-
-<details>
-<summary><b>📦 Build the installers yourself</b></summary>
-
-<br />
-
-```bash
-npm run dist:mac     # → dist/Murmr-<version>-arm64.dmg
-npm run dist:win     # → NSIS .exe installer
-npm run dist:linux   # → .AppImage and .deb
-```
-
-Build each installer on its own OS (or in CI). Builds are currently unsigned: on first launch, macOS needs *right-click → Open* and Windows shows SmartScreen.
+Build the installers with `npm run dist:mac`, `npm run dist:win` or `npm run dist:linux` (each on its own OS). Releases are built automatically by [GitHub Actions](.github/workflows/release.yml) when a `v*` tag is pushed.
 
 </details>
 
@@ -222,7 +245,8 @@ Murmr is built with **Electron**, **React** and **TypeScript**. The interesting 
 - [x] Cloud (Groq) and local (whisper.cpp) engines
 - [x] Personal dictionary and searchable history
 - [x] English and French interface
-- [ ] Prebuilt, signed installers with auto-update
+- [x] Prebuilt installers for macOS, Windows and Linux
+- [ ] Code signing, notarization and auto-update
 - [ ] **Command mode**: select text, say *"make it shorter"*, done
 - [ ] App-aware styles (casual in Slack, formal in email)
 - [ ] Voice snippets (*"my address"* → your full address)

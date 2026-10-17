@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { MessageKey } from '../../shared/i18n';
+import logoMark from './assets/logo-mark.png';
 import { DictionaryPage } from './DictionaryPage';
 import { HistoryPage } from './HistoryPage';
 import { HomePage } from './HomePage';
@@ -38,9 +39,7 @@ function Shell({ settings, update }: Props) {
     <div className={`app platform-${window.murmr.platform}`}>
       <aside className="sidebar">
         <div className="brand">
-          <div className="brand-logo">
-            <Icon name="mic" size={18} />
-          </div>
+          <img className="brand-mark" src={logoMark} alt="" />
           <span>Murmr</span>
         </div>
         <nav>

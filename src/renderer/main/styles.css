@@ -121,14 +121,9 @@ p {
   font-size: 17px;
 }
 
-.brand-logo {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
-  color: white;
-  background: linear-gradient(160deg, #6366f1, #a855f7);
+.brand-mark {
+  height: 24px;
+  width: auto;
 }
 
 nav {
